@@ -207,10 +207,18 @@ function getMaleK(faceScore) {
   const childMap = { single: 1.00, divorced: 0.95, 'child-away': 0.60, 'child-with': 0.30 };
   ks.children = { label: 'Дети / статус', k: childMap[children] ?? 1.00, raw: children };
 
+  const isUnusual = typeof hasUnusualHobbies !== 'undefined' ? hasUnusualHobbies : false;
+
   const job = document.getElementById('m-job')?.value || 'stable';
   let jobK = 1.00;
   if (job === 'stable') jobK = 1.00;
-  else if (job === 'backend') jobK = 0.70;
+  else if (job === 'backend') {
+    if (faceScore >= 7) {
+      jobK = 1.00;
+    } else {
+      jobK = isUnusual ? 0.70 : 0.90;
+    }
+  }
   else if (job === 'humanitarian') jobK = faceScore >= 7 ? 0.85 : 0.55;
   else if (job === 'business') jobK = 0.70;
   else if (job === 'creative') {
@@ -246,7 +254,6 @@ function getMaleK(faceScore) {
   ks.photo = { label: 'Визуал / фото', k: photoK, raw: pt };
 
   // Необычные интересы (мужской)
-  const isUnusual = typeof hasUnusualHobbies !== 'undefined' ? hasUnusualHobbies : false;
   let hobbyK = 1.0;
   if (isUnusual) {
     if (faceScore >= 7 && heightNum > 180) hobbyK = 1.2;
