@@ -352,12 +352,21 @@ function getFemaleK(faceScore) {
   const childMap = { none: 1.00, 'child-12+': 0.40, 'child-under-12': 0.20 };
   ks.children = { label: 'Дети', k: childMap[children] ?? 1.00, raw: children };
 
+  // Необычные интересы (женский)
+  const isUnusual = typeof hasUnusualHobbies !== 'undefined' ? hasUnusualHobbies : false;
+
   const type = document.getElementById('f-type')?.value || 'girl-next-door';
   let typeK = 1.00;
   if (type === 'girl-next-door') typeK = 1.00;
   else if (type === 'alt') {
     const bodyVal = document.getElementById('f-body')?.value || 'normal';
-    typeK = (bodyVal === 'slim' && faceScore >= 6) ? 0.80 : 0.35;
+    if (bodyVal === 'slim' && faceScore >= 6) {
+      typeK = 0.80;
+    } else if (bodyVal === 'curvy' && faceScore >= 8 && isUnusual) {
+      typeK = 0.43; // Смягченный штраф: привлекательный альт-профиль с формами и гик-интересами (DLI ~60.8%)
+    } else {
+      typeK = 0.35;
+    }
   } else if (type === 'insta') typeK = 0.65;
   else if (type === 'corporate') typeK = 0.75;
   ks.type = { label: 'Типаж', k: typeK, raw: type };
@@ -370,7 +379,6 @@ function getFemaleK(faceScore) {
   ks.photo = { label: 'Визуал / фото', k: photoK, raw: pt };
 
   // Необычные интересы (женский — бонус для привлекательных гик-девушек)
-  const isUnusual = typeof hasUnusualHobbies !== 'undefined' ? hasUnusualHobbies : false;
   let hobbyK = 1.0;
   if (isUnusual) {
     hobbyK = faceScore >= 7 ? 1.2 : 0.6;
