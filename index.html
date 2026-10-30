@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dating Liquidity Calculator</title>
+  <meta name="description"
+    content="Рассчитай свой Dating Liquidity Index (DLI) — объективный показатель рыночной стоимости на дейтинг-платформах." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            term: {
+              bg: '#0d0d0d',
+              surface: '#111111',
+              border: '#1f1f1f',
+              muted: '#2a2a2a',
+              dim: '#3d3d3d',
+              faint: '#525252',
+              mid: '#737373',
+              text: '#d4d4d4',
+              bright: '#f5f5f5',
+              green: '#4ade80',
+              amber: '#fbbf24',
+              red: '#f87171',
+              blue: '#60a5fa',
+              cyan: '#22d3ee',
+            }
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css?v=2.2" />
+</head>
+
+<body class="min-h-screen">
+
+  <!-- ═══════════════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════════════════ -->
+  <header class="border-b border-term-border">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+      <!-- Top bar -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-xs text-term-faint">dli</span>
+          <span class="text-term-dim">·</span>
+          <span class="font-mono text-xs text-term-faint">v2.1</span>
+        </div>
+        <span class="font-mono text-xs text-term-dim">drop-funnel model</span>
+      </div>
+      <!-- Title -->
+      <div class="space-y-1">
+        <p class="font-mono text-xs text-term-green mb-3">$ ./calculate --mode=dating-liquidity</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-term-bright tracking-tight">
+          Dating Liquidity Calculator
+        </h1>
+        <p class="text-sm text-term-mid leading-relaxed max-w-lg mt-2">
+          Анализ рыночной стоимости твоего профиля в приложениях для знакомств.<br />
+          <span class="text-term-faint">Никакой лести, только цифры и мультипликативная математика. Создано
+            дейтинг-аутстаффом aka кибер-свахой. У автора нет намерения кого-то оскорбить, есть лишь намерение показать,
+            насколько сложно в дейтинге, как девушкам, так и мужчинам.</span>
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════
+       MAIN
+  ══════════════════════════════════════════════════════════ -->
+  <main class="max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-4">
+
+    <!-- ── GENDER ────────────────────────────────────────── -->
+    <div class="term-card p-4 sm:p-5">
+      <div class="prompt-label mb-4">
+        <span class="prompt-prefix">$</span>--gender
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="btn-male"
+          class="gender-btn active-male py-3 px-4 font-medium text-sm border border-term-border flex items-center justify-center gap-2"
+          onclick="setGender('male')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="10" cy="14" r="5" />
+            <line x1="19" y1="5" x2="14.65" y2="9.35" />
+            <line x1="15" y1="5" x2="19" y2="5" />
+            <line x1="19" y1="5" x2="19" y2="9" />
+          </svg>
+          male
+        </button>
+        <button id="btn-female"
+          class="gender-btn py-3 px-4 font-medium text-sm border border-term-border text-term-faint flex items-center justify-center gap-2"
+          onclick="setGender('female')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="5" />
+            <line x1="12" y1="13" x2="12" y2="21" />
+            <line x1="9" y1="18" x2="15" y2="18" />
+          </svg>
+          female
+        </button>
+      </div>
+    </div>
+
+    <!-- ── ОБЩИЕ ПАРАМЕТРЫ ───────────────────────────────── -->
+    <div class="term-card p-4 sm:p-5 space-y-6">
+      <div class="prompt-label">
+        <span class="prompt-prefix">$</span>--params common
+      </div>
+
+      <!-- Face score -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="text-sm text-term-text" for="face-score">
+            Привлекательность лица (пожалуйста, не ври)
+          </label>
+          <div class="flex items-center gap-1.5">
+            <span id="face-score-val" class="font-mono font-medium text-term-amber text-base w-5 text-right">5</span>
+            <span class="text-term-faint font-mono text-xs">/10</span>
+          </div>
+        </div>
+        <input type="range" id="face-score" min="1" max="10" value="5" oninput="onFaceChange(this.value)" />
+        <div class="flex justify-between font-mono text-xs text-term-dim">
+          <span>1</span>
+          <span>5</span>
+          <span>10</span>
+        </div>
+      </div>
+
+      <!-- Photo type -->
+      <div class="space-y-2 relative" id="photo-dropdown-container">
+        <label class="text-sm text-term-text" for="photo-dropdown-btn">Тип фото / Визуал</label>
+
+        <!-- Native select kept in sync for JS logic & calculate() -->
+        <select id="photo-type" class="sr-only" onchange="updateUI()">
+          <option value="lifestyle">lifestyle — в реальной жизни / окружении / хобби / путешествия</option>
+          <option value="normal" selected>normal — обычные селфи со смартфона</option>
+          <option value="linkedin">linkedin — профессиональные фото / корпоративные и деловые</option>
+          <option value="studio">studio — студийная съемка вне офиса</option>
+          <option value="selfie">selfie — селфи в зеркало / в авто / в зале</option>
+          <option value="anti">anti — нечеткие фото / очки на всех снимках / с друзьями</option>
+        </select>
+
+        <!-- Custom Dropdown Button -->
+        <button type="button" id="photo-dropdown-btn" onclick="togglePhotoDropdown(event)"
+          class="w-full bg-term-surface border border-term-border px-3 py-2.5 text-left text-term-text font-mono transition-colors hover:border-term-dim focus:border-term-faint flex items-center justify-between gap-3 group">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span id="photo-btn-badge"
+                class="text-term-green text-xs font-semibold px-1.5 py-0.5 bg-term-border/50 shrink-0">normal</span>
+              <span id="photo-btn-title" class="text-xs sm:text-sm text-term-bright font-medium truncate">обычные селфи
+                со смартфона</span>
+            </div>
+            <p id="photo-btn-desc" class="text-[11px] sm:text-xs text-term-faint truncate mt-1 leading-normal">простые
+              повседневные кадры без заморочек и студийного света</p>
+          </div>
+          <svg id="photo-dropdown-arrow" class="w-4 h-4 text-term-dim flex-shrink-0 transition-transform duration-200"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        <!-- Custom Dropdown Menu with Full Text (No truncation, multi-line) -->
+        <div id="photo-dropdown-menu" style="-webkit-overflow-scrolling: touch;"
+          class="hidden absolute left-0 right-0 top-full z-50 mt-1 bg-[#141414] border border-term-border shadow-2xl max-h-80 overflow-y-auto divide-y divide-term-border/40">
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors photo-option-item font-mono border-l-2 border-transparent"
+            data-val="lifestyle" onclick="selectPhoto('lifestyle')">
+            <div class="flex items-center gap-2 mb-1">
+              <span
+                class="text-term-green text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">lifestyle</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">лайфстайл и окружение</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              в реальной жизни / спорт / хобби / путешествия / естественный социальный контекст
+            </p>
+          </div>
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors photo-option-item font-mono border-l-2 border-term-green bg-term-border/20"
+            data-val="normal" onclick="selectPhoto('normal')">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-term-green text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">normal</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">обычные селфи со смартфона</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              простые повседневные кадры без заморочек и студийного света
+            </p>
+          </div>
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors photo-option-item font-mono border-l-2 border-transparent"
+            data-val="linkedin" onclick="selectPhoto('linkedin')">
+            <div class="flex items-center gap-2 mb-1">
+              <span
+                class="text-term-blue text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">linkedin</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">деловые / корпоративные фото</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              костюм, деловой дресс-код, офис, спикерские кадры или нейро-фотосессия
+            </p>
+          </div>
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors photo-option-item font-mono border-l-2 border-transparent"
+            data-val="studio" onclick="selectPhoto('studio')">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-term-cyan text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">studio</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">постановочная студия</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              студийная съемка вне офиса, искусственный свет, модельные позы
+            </p>
+          </div>
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors photo-option-item font-mono border-l-2 border-transparent"
+            data-val="selfie" onclick="selectPhoto('selfie')">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-term-amber text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">selfie</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">селфи в зеркало / авто / зале</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              лифт, спортзал, зеркало в туалете или за рулем с одного и того же ракурса
+            </p>
+          </div>
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors photo-option-item font-mono border-l-2 border-transparent"
+            data-val="anti" onclick="selectPhoto('anti')">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-term-red text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">anti</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">анти-визуал / нечеткие фото</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              размытые кадры, темные очки на всех снимках, обрезки бывших или чужие лица
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── НЕВЕРБАЛЬНЫЕ МАРКЕРЫ НА ФОТО ───────────────────── -->
+    <div class="term-card p-4 sm:p-5 space-y-4">
+      <div class="prompt-label">
+        <span class="prompt-prefix">$</span>--photo markers
+      </div>
+      <div>
+        <label class="text-sm text-term-text">Дополнительные маркеры на фото. Можно ничего не выбирать</label>
+      </div>
+
+      <div class="space-y-2.5">
+        <!-- Стоматологический ценз -->
+        <label
+          class="flex items-start gap-3 p-3 border border-term-border bg-term-surface cursor-pointer hover:border-term-dim transition-colors">
+          <input type="checkbox" id="marker-dental"
+            class="accent-emerald-500 w-4 h-4 flex-shrink-0 mt-0.5 cursor-pointer" onchange="updateUI()" />
+          <span class="font-mono text-xs font-medium text-term-bright leading-relaxed">На всех фото рот плотно закрыт
+            (нет улыбки с зубами)</span>
+        </label>
+
+        <!-- Колхозный пафос -->
+        <label
+          class="flex items-start gap-3 p-3 border border-term-border bg-term-surface cursor-pointer hover:border-term-dim transition-colors">
+          <input type="checkbox" id="marker-pathos"
+            class="accent-emerald-500 w-4 h-4 flex-shrink-0 mt-0.5 cursor-pointer" onchange="updateUI()" />
+          <span id="marker-pathos-text" class="font-mono text-xs font-medium text-term-bright leading-relaxed">Фото у
+            чужих авто / пачки денег / кальянный неон</span>
+        </label>
+
+        <!-- Спорт-радикализм -->
+        <label
+          class="flex items-start gap-3 p-3 border border-term-border bg-term-surface cursor-pointer hover:border-term-dim transition-colors">
+          <input type="checkbox" id="marker-sport"
+            class="accent-emerald-500 w-4 h-4 flex-shrink-0 mt-0.5 cursor-pointer" onchange="updateUI()" />
+          <span class="font-mono text-xs font-medium text-term-bright leading-relaxed">Фото исключительно с тренировок /
+            соревнований / экстремальная сушка</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ── СПЕЦИФИЧНЫЕ ПОЛЯ (JS) ─────────────────────────── -->
+    <div id="gender-specific-fields"></div>
+
+    <!-- ── ЖИЛЬЁ И ЛОКАЦИЯ ─────────────────────────────────── -->
+    <div class="term-card p-4 sm:p-5 space-y-5">
+      <div class="prompt-label">
+        <span class="prompt-prefix">$</span>--logistics & housing
+      </div>
+
+      <!-- Housing Status -->
+      <div class="space-y-2">
+        <label class="text-sm text-term-text" for="housing-status">Какая у тебя ситуация с жильем?</label>
+        <select id="housing-status"
+          class="w-full bg-term-surface border border-term-border px-3 py-2.5 text-term-text font-mono truncate transition-colors hover:border-term-dim focus:border-term-faint"
+          onchange="updateUI()">
+          <option value="own" selected>own — своё жильё (аренда или собственность)</option>
+          <option value="coliving" id="housing-opt-parents">coliving — проживание с родителями или друзьями</option>
+          <option value="dorm">dorm — общежитие</option>
+        </select>
+      </div>
+
+      <!-- Location / Transport Friction -->
+      <div class="space-y-2">
+        <label class="text-sm text-term-text" for="location-radius">Радиус доступности</label>
+        <select id="location-radius"
+          class="w-full bg-term-surface border border-term-border px-3 py-2.5 text-term-text font-mono truncate transition-colors hover:border-term-dim focus:border-term-faint"
+          onchange="updateUI()">
+          <option value="center" selected>center — центр / в пределах ТТК</option>
+          <option value="suburb">suburb — спальный район</option>
+          <option value="oblast">oblast — за МКАД / пригород</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ── ТИП ОПИСАНИЯ / BIO ──────────────────────────────── -->
+    <div class="term-card p-4 sm:p-5 space-y-3">
+      <div class="prompt-label">
+        <span class="prompt-prefix">$</span>--bio type
+      </div>
+      <div class="space-y-2 relative" id="bio-dropdown-container">
+        <label class="text-sm text-term-text" for="bio-dropdown-btn">Что написано у тебя в описании?</label>
+
+        <!-- Native select kept in sync for JS logic & calculate() -->
+        <select id="bio-type" class="sr-only" onchange="updateUI()">
+          <option value="normal" selected>normal — дефолтное описание</option>
+          <option value="empty">empty — пустое описание</option>
+          <option value="aggro">aggro — список требований и условий к девушке</option>
+          <option value="insta">insta — только ссылка на соцсети</option>
+          <option value="esoteric">esoteric — астрология / таро / эзотерика / йога</option>
+          <option value="alpha">alpha — цитаты / мудрость / заезженные штуки</option>
+        </select>
+
+        <!-- Custom Dropdown Button -->
+        <button type="button" id="bio-dropdown-btn" onclick="toggleBioDropdown(event)"
+          class="w-full bg-term-surface border border-term-border px-3 py-2.5 text-left text-term-text font-mono transition-colors hover:border-term-dim focus:border-term-faint flex items-center justify-between gap-3 group">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span id="bio-btn-badge"
+                class="text-term-green text-xs font-semibold px-1.5 py-0.5 bg-term-border/50 shrink-0">normal</span>
+              <span id="bio-btn-title" class="text-xs sm:text-sm text-term-bright font-medium truncate">дефолтное
+                описание</span>
+            </div>
+            <p id="bio-btn-desc" class="text-[11px] sm:text-xs text-term-faint truncate mt-1 leading-normal">днем тыры,
+              вечером пыры, ценю баланс, ищу спутницу, чтобы разделять моменты жизни.</p>
+          </div>
+          <svg id="bio-dropdown-arrow" class="w-4 h-4 text-term-dim flex-shrink-0 transition-transform duration-200"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        <!-- Custom Dropdown Menu with Full Text (No truncation, multi-line, dynamically populated by JS) -->
+        <div id="bio-dropdown-menu" style="-webkit-overflow-scrolling: touch;"
+          class="hidden absolute left-0 right-0 top-full z-50 mt-1 bg-[#141414] border border-term-border shadow-2xl max-h-80 overflow-y-auto divide-y divide-term-border/40"></div>
+      </div>
+    </div>
+
+    <!-- ── НЕОБЫЧНЫЕ ИНТЕРЕСЫ ──────────────────────────────── -->
+    <div class="term-card p-4 sm:p-5 space-y-3">
+      <div class="prompt-label">
+        <span class="prompt-prefix">$</span>--hobbies unusual
+      </div>
+      <div class="space-y-1">
+        <label class="text-sm text-term-text">Есть ли у тебя необычные интересы?</label>
+        <p class="text-xs text-term-faint font-mono leading-relaxed">
+          варкрафт / варгеймы / поднимать сервер / реконструкции / dnd / красить миниатюры / ролевые игры (не те,
+          которые хотелось бы) / коллекционирование /
+          радиолюбительство / ...
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="hobby-no" onclick="setHobby(false)"
+          class="hobby-btn active-hobby-no font-mono text-xs py-3 px-4 border border-term-border transition-all duration-150">
+          нет — обычные интересы
+        </button>
+        <button id="hobby-yes" onclick="setHobby(true)"
+          class="hobby-btn font-mono text-xs py-3 px-4 border border-term-border text-term-faint transition-all duration-150">
+          да — есть нишевые
+        </button>
+      </div>
+    </div>
+
+    <!-- ── СТИЛЬ ПЕРЕПИСКИ / ОПЕНЕР ──────────────────────── -->
+    <div class="term-card p-4 sm:p-5 space-y-3">
+      <div class="prompt-label">
+        <span class="prompt-prefix">$</span>--chat opener & style
+      </div>
+      <div class="space-y-2 relative" id="opener-dropdown-container">
+        <label class="text-sm text-term-text" for="opener-dropdown-btn">Стиль первого сообщения / Опенер</label>
+
+        <!-- Native select kept in sync for JS logic & calculate() -->
+        <select id="chat-opener" class="sr-only" onchange="updateUI()">
+          <option value="standard" selected>standard — шаблонный «привет, как дела»</option>
+          <option value="context">context — контекстный вопрос / самоирония</option>
+          <option value="aggressive">aggressive — агрессивный подкат / пошлость</option>
+          <option value="silent">silent — молчу и жду, пока напишут мне</option>
+        </select>
+
+        <!-- Custom Dropdown Button -->
+        <button type="button" id="opener-dropdown-btn" onclick="toggleOpenerDropdown(event)"
+          class="w-full bg-term-surface border border-term-border px-3 py-2.5 text-left text-term-text font-mono transition-colors hover:border-term-dim focus:border-term-faint flex items-center justify-between gap-3 group">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span id="opener-btn-badge"
+                class="text-term-mid text-xs font-semibold px-1.5 py-0.5 bg-term-border/50 shrink-0">standard</span>
+              <span id="opener-btn-title" class="text-xs sm:text-sm text-term-bright font-medium truncate">шаблонный «привет, как дела»</span>
+            </div>
+            <p id="opener-btn-desc" class="text-[11px] sm:text-xs text-term-faint truncate mt-1 leading-normal">классический шаблонный старт без контекста: «привет, как дела / чем занимаешься?»</p>
+          </div>
+          <svg id="opener-dropdown-arrow" class="w-4 h-4 text-term-dim flex-shrink-0 transition-transform duration-200"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        <!-- Custom Dropdown Menu with Full Text (No truncation, multi-line) -->
+        <div id="opener-dropdown-menu" style="-webkit-overflow-scrolling: touch;"
+          class="hidden absolute left-0 right-0 top-full z-50 mt-1 bg-[#141414] border border-term-border shadow-2xl max-h-80 overflow-y-auto divide-y divide-term-border/40">
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors opener-option-item font-mono border-l-2 border-term-green bg-term-border/20"
+            data-val="standard" onclick="selectOpener('standard')">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-term-mid text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">standard</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">шаблонный «привет, как дела»</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              классический шаблонный старт без контекста: «привет, как дела / чем занимаешься?»
+            </p>
+          </div>
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors opener-option-item font-mono border-l-2 border-transparent"
+            data-val="context" onclick="selectOpener('context')">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-term-green text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">context</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">контекстный вопрос / самоирония</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              подмечаешь деталь на фото или зацепку в описании, шутишь без кринжа, лёгкий смол-ток
+            </p>
+          </div>
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors opener-option-item font-mono border-l-2 border-transparent"
+            data-val="aggressive" onclick="selectOpener('aggressive')">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-term-red text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">aggro</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">агрессивный подкат / пошлость</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              «твоей маме зять не нужен?», двусмысленный флирт в лоб, пикап-фразы из пабликов
+            </p>
+          </div>
+
+          <div
+            class="p-3 hover:bg-term-border/30 cursor-pointer transition-colors opener-option-item font-mono border-l-2 border-transparent"
+            data-val="silent" onclick="selectOpener('silent')">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-term-amber text-xs font-semibold px-1.5 py-0.5 bg-term-border/60 shrink-0">silent</span>
+              <span class="text-xs sm:text-sm text-term-bright font-medium">молчу и жду, пока напишут мне</span>
+            </div>
+            <p class="text-xs text-term-mid leading-relaxed whitespace-normal pl-0.5">
+              мэтч получен, но первое сообщение не отправляется: жду первого шага от собеседника
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── КНОПКА РАСЧЁТА ───────────────────────────────── -->
+    <button id="calc-btn" onclick="calculate()"
+      class="w-full py-3.5 px-8 font-mono font-medium text-sm text-term-bg bg-term-text hover:bg-term-bright active:scale-95 transition-all duration-150 flex items-center justify-center gap-2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="9 11 12 14 22 4" />
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+      </svg>
+      run calculate()
+    </button>
+
+    <!-- ── РЕЗУЛЬТАТЫ ─────────────────────────────────────── -->
+    <div id="result-block"></div>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════════════ -->
+  <footer class="border-t border-term-border mt-12 sm:mt-16 py-6 px-4 text-center">
+    <p class="font-mono text-xs text-term-dim leading-relaxed max-w-md mx-auto">
+      dating-liquidity-calculator · drop-funnel-model · v2.1<br class="sm:hidden" />
+      <span class="hidden sm:inline mx-2 text-term-border">·</span>
+      данные носят развлекательный характер
+    </p>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════════════════
+       JAVASCRIPT MODULES & LOGIC
+  ══════════════════════════════════════════════════════════ -->
+  <script src="js/calculator.js?v=2.2"></script>
+  <script src="js/share.js?v=2.2"></script>
+  <script src="js/app.js?v=2.2"></script>
+</body>
+
+</html>

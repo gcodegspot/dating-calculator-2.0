@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.js linguist-detectable=true
+*.css linguist-detectable=true
+*.html linguist-detectable=true
+
