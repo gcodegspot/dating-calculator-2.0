@@ -108,10 +108,16 @@ const PHOTO_OPTIONS = {
     title: 'деловые / корпоративные фото',
     desc: 'костюм, деловой дресс-код, офис, спикерские кадры или нейро-фотосессия'
   },
-  studio: {
-    code: 'studio',
+  prof: {
+    code: 'prof',
     badgeClass: 'text-term-cyan',
-    title: 'постановочная студия',
+    title: 'постановочная проф съемка вне офиса',
+    desc: 'студийная съемка вне офиса, искусственный свет, модельные позы'
+  },
+  studio: {
+    code: 'prof',
+    badgeClass: 'text-term-cyan',
+    title: 'постановочная проф съемка вне офиса',
     desc: 'студийная съемка вне офиса, искусственный свет, модельные позы'
   },
   selfie: {
@@ -166,6 +172,7 @@ function getPhotoK(type, heightCm, faceScore, gender = 'male') {
     case 'lifestyle': return 1.25;
     case 'normal': return 1.00;
     case 'linkedin': return 0.80;
+    case 'prof':
     case 'studio':
       if (gender === 'female') return 1.00;
       return (heightCm >= 180 && faceScore >= 7) ? 1.00 : 0.60;
@@ -476,15 +483,13 @@ function getTier(dli, gender = (typeof currentGender !== 'undefined' ? currentGe
 /**
  * Market percentile calculation
  */
-function getPercentile(dli) {
-  if (dli >= 140) return { text: 'топ-2% рынка', desc: 'максимальная ликвидность' };
+function getPercentile(dli, gender = (typeof currentGender !== 'undefined' ? currentGender : 'male')) {
   if (dli >= 110) return { text: 'топ-5% рынка', desc: 'высокая ликвидность' };
-  if (dli >= 90) return { text: 'топ-15% рынка', desc: 'выше среднего' };
-  if (dli >= 75) return { text: 'топ-30% рынка', desc: 'крепкая рыночная норма' };
+  if (dli >= 75) return { text: 'топ-25% рынка', desc: 'крепкая норма' };
   if (dli >= 45) return { text: 'топ-50% рынка', desc: 'медианный сегмент' };
-  if (dli >= 25) return { text: 'топ-70% рынка', desc: 'повышенный friction' };
-  if (dli >= 10) return { text: 'топ-85% рынка', desc: 'нишевый сегмент' };
-  if (dli > 0) return { text: 'топ-95% рынка', desc: 'критическое сопротивление' };
+  if (dli >= 25) return { text: 'нижние 30% рынка', desc: 'повышенный friction' };
+  if (dli >= 10 || gender === 'female') return { text: 'нижние 15% рынка', desc: 'нишевый сегмент' };
+  if (dli > 0) return { text: 'нижние 5% рынка', desc: 'критическое сопротивление' };
   return { text: '0% охвата', desc: 'коллапс воронки' };
 }
 

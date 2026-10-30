@@ -426,7 +426,7 @@ function calculate() {
 /* ─── Result Presentation ──────────────────────────────── */
 function renderResult(dli, ks) {
   const tier = getTier(dli, currentGender);
-  const percentile = getPercentile(dli);
+  const percentile = getPercentile(dli, currentGender);
   lastResult = { dli, tier, ks };
   if (typeof window !== 'undefined') window.lastResult = lastResult;
   const dliStr = dli.toFixed(1);
