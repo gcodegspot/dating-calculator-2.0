@@ -421,6 +421,7 @@ function calculate() {
   // Округление до 2 знаков для предотвращения погрешностей точности IEEE 754 при сравнении с порогами тиров
   const dli = Math.max(minDli, Math.round(product * 10000) / 100);
   renderResult(dli, ks);
+  incrementCalcCounter();
 }
 
 /* ─── Result Presentation ──────────────────────────────── */
@@ -655,5 +656,56 @@ if (typeof window !== 'undefined') {
   window.hideResult = hideResult;
   window.calculate = calculate;
   window.renderResult = renderResult;
+  window.incrementCalcCounter = incrementCalcCounter;
+  window.loadCalcCounter = loadCalcCounter;
 }
+
+/* ─── Calculation Counter ──────────────────────────────────
+   Uses countapi.xyz — a free, zero-auth hit counter API.
+   Counter increments only on actual calculate() calls,
+   not on page loads, to reflect real usage.
+   Namespace: dli-calc / Key: calculations-v1
+   ─────────────────────────────────────────────────────── */
+const COUNTER_URL = 'https://api.countapi.xyz/hit/dli-calc/calculations-v1';
+const COUNTER_READ_URL = 'https://api.countapi.xyz/get/dli-calc/calculations-v1';
+
+function formatCount(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
+  return n.toString();
+}
+
+function updateCounterEl(value) {
+  const el = document.getElementById('calc-counter-value');
+  if (!el) return;
+  el.textContent = formatCount(value);
+  // reveal the badge smoothly
+  const badge = document.getElementById('calc-counter-badge');
+  if (badge) badge.classList.remove('opacity-0');
+}
+
+function incrementCalcCounter() {
+  fetch(COUNTER_URL)
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.value != null) {
+        updateCounterEl(data.value);
+      } else {
+        // Key might not exist yet — create it on first hit
+        return fetch('https://api.countapi.xyz/create?namespace=dli-calc&key=calculations-v1&value=1')
+          .then(r => r.json())
+          .then(d => { if (d && d.value != null) updateCounterEl(d.value); });
+      }
+    })
+    .catch(() => { /* silent — counter is non-critical */ });
+}
+
+function loadCalcCounter() {
+  fetch(COUNTER_READ_URL)
+    .then(r => r.json())
+    .then(data => { if (data && data.value != null) updateCounterEl(data.value); })
+    .catch(() => { /* silent */ });
+}
+
+// Load current count on page start (read-only, no increment)
+loadCalcCounter();
 
